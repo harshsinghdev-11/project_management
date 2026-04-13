@@ -1,7 +1,3 @@
-# Project Guide: Project Camp Backend
-
-Welcome to the **Project Camp Backend**! This file will help you understand the project structure, what each component does, and how you can get started with navigating, running, and modifying the codebase.
-
 ## 1. What is this project?
 
 This project is a RESTful API backend for a collaborative **Project Management System**. 
