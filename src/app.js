@@ -4,7 +4,9 @@ import cookieParser from "cookie-parser";
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
 
-const swaggerDocument = JSON.parse(fs.readFileSync("./openapi.json", "utf-8"));
+const swaggerDocument = JSON.parse(
+  fs.readFileSync(new URL("./openapi.json", import.meta.url), "utf-8")
+);
 
 const app = express();
 
