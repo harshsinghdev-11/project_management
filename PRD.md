@@ -72,6 +72,10 @@ Project Camp Backend is a RESTful API service designed to support collaborative 
 
 - **Health Check:** API endpoint for system status monitoring
 
+#### 3.8 API Documentation
+
+- **Interactive API Docs:** Swagger UI hosted at `/docs` displaying interactive API endpoint structures and allowing developer testing.
+
 ### 4. Technical Specifications
 
 #### 4.1 API Endpoints Structure
@@ -123,6 +127,10 @@ Project Camp Backend is a RESTful API service designed to support collaborative 
 **Health Check** (`/api/v1/healthcheck/`)
 
 - `GET /` - System health status
+
+**API Documentation** (`/docs`)
+
+- `GET /docs` - Serves the interactive Swagger UI documentation for all endpoints (configured via `openapi.json`).
 
 #### 4.2 Permission Matrix
 
