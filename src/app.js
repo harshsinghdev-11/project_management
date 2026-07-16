@@ -39,7 +39,7 @@ app.use("/api/v1/projects", projectRouter);
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.get("/", (req, res) => {
-  res.send("Welcome to basecampy");
+  res.send("visit /docs");
 });
 
 export default app;

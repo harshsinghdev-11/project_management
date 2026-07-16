@@ -7,8 +7,12 @@
   },
   "servers": [
     {
-      "url": "http://localhost:3000/api/v1",
+      "url": "http://localhost:3000/",
       "description": "Local development server"
+    },
+    {
+      "url": "https://project-management-1-x0rd.onrender.com/",
+      "description": "Production server"
     }
   ],
   "components": {
