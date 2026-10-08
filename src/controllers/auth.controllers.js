@@ -3,11 +3,11 @@ import { ApiResponse } from "../utils/api-response.js";
 import { ApiError } from "../utils/api-error.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import {
-  emailVerificationMailgenContent,
   forgotPasswordMailgenContent,
   sendEmail,
 } from "../utils/mail.js";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -41,28 +41,11 @@ const registerUser = asyncHandler(async (req, res) => {
     email,
     password,
     username,
-    isEmailVerified: false,
-  });
-
-  const { unHashedToken, hashedToken, tokenExpiry } =
-    user.generateTemporaryToken();
-
-  user.emailVerificationToken = hashedToken;
-  user.emailVerificationExpiry = tokenExpiry;
-
-  await user.save({ validateBeforeSave: false });
-
-  await sendEmail({
-    email: user?.email,
-    subject: "Please verify your email",
-    mailgenContent: emailVerificationMailgenContent(
-      user.username,
-      `${req.protocol}://${req.get("host")}/api/v1/users/verify-email/${unHashedToken}`,
-    ),
+    isEmailVerified: true,
   });
 
   const createdUser = await User.findById(user._id).select(
-    "-password -refreshToken -emailVerificationToken -emailVerificationExpiry",
+    "-password -refreshToken",
   );
 
   if (!createdUser) {
@@ -73,9 +56,9 @@ const registerUser = asyncHandler(async (req, res) => {
     .status(201)
     .json(
       new ApiResponse(
-        200,
+        201,
         { user: createdUser },
-        "User registered successfully and verification email has been sent on your email",
+        "User registered successfully",
       ),
     );
 });
@@ -104,7 +87,7 @@ const login = asyncHandler(async (req, res) => {
   );
 
   const loggedInUser = await User.findById(user._id).select(
-    "-password -refreshToken -emailVerificationToken -emailVerificationExpiry",
+    "-password -refreshToken",
   );
 
   const options = {
@@ -158,75 +141,6 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, req.user, "Current user fetched successfully"));
 });
 
-const verifyEmail = asyncHandler(async (req, res) => {
-  const { verificationToken } = req.params;
-
-  if (!verificationToken) {
-    throw new ApiError(400, "Email verification token is missing");
-  }
-
-  let hashedToken = crypto
-    .createHash("sha256")
-    .update(verificationToken)
-    .digest("hex");
-
-  const user = await User.findOne({
-    emailVerificationToken: hashedToken,
-    emailVerificationExpiry: { $gt: Date.now() },
-  });
-
-  if (!user) {
-    throw new ApiError(400, "Token is invalid or expired");
-  }
-
-  user.emailVerificationToken = undefined;
-  user.emailVerificationExpiry = undefined;
-
-  user.isEmailVerified = true;
-  await user.save({ validateBeforeSave: false });
-
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      {
-        isEmailVerified: true,
-      },
-      "Email is verified",
-    ),
-  );
-});
-
-const resendEmailVerification = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user?._id);
-
-  if (!user) {
-    throw new ApiError(404, "User does not exist");
-  }
-  if (user.isEmailVerified) {
-    throw new ApiError(409, "Email is already verified");
-  }
-
-  const { unHashedToken, hashedToken, tokenExpiry } =
-    user.generateTemporaryToken();
-
-  user.emailVerificationToken = hashedToken;
-  user.emailVerificationExpiry = tokenExpiry;
-
-  await user.save({ validateBeforeSave: false });
-
-  await sendEmail({
-    email: user?.email,
-    subject: "Please verify your email",
-    mailgenContent: emailVerificationMailgenContent(
-      user.username,
-      `${req.protocol}://${req.get("host")}/api/v1/users/verify-email/${unHashedToken}`,
-    ),
-  });
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, {}, "Mail has been sent to your email ID"));
-});
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
@@ -366,8 +280,6 @@ export {
   login,
   logoutUser,
   getCurrentUser,
-  verifyEmail,
-  resendEmailVerification,
   refreshAccessToken,
   forgotPasswordRequest,
   changeCurrentPassword,

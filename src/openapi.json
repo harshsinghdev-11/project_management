@@ -91,24 +91,6 @@
         }
       }
     },
-    "/auth/verify-email/{verificationToken}": {
-      "get": {
-        "tags": ["Auth"],
-        "summary": "Verify user email",
-        "security": [],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "verificationToken",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
-        "responses": {
-          "200": { "description": "Email verified" }
-        }
-      }
-    },
     "/auth/refresh-token": {
       "post": {
         "tags": ["Auth"],
@@ -211,15 +193,6 @@
         },
         "responses": {
           "200": { "description": "Password changed" }
-        }
-      }
-    },
-    "/auth/resend-email-verification": {
-      "post": {
-        "tags": ["Auth"],
-        "summary": "Resend email verification",
-        "responses": {
-          "200": { "description": "Email sent" }
         }
       }
     },

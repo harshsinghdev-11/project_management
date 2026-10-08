@@ -40,7 +40,7 @@ const userSchema = new Schema(
     },
     isEmailVerified: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     refreshToken: {
       type: String,
@@ -49,12 +49,6 @@ const userSchema = new Schema(
       type: String,
     },
     forgotPasswordExpiry: {
-      type: Date,
-    },
-    emailVerificationToken: {
-      type: String,
-    },
-    emailVerificationExpiry: {
       type: Date,
     },
   },
