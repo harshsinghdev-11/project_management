@@ -8,6 +8,7 @@ import mongoose from "mongoose";
 import { AvailableUserRole, UserRolesEnum } from "../utils/constants.js";
 
 const getProjects = asyncHandler(async (req, res) => {
+ 
   const projects = await ProjectMember.aggregate([
     {
       $match: {
@@ -17,7 +18,7 @@ const getProjects = asyncHandler(async (req, res) => {
     {
       $lookup: {
         from: "projects",
-        localField: "projects",
+        localField: "project",
         foreignField: "_id",
         as: "projects",
         pipeline: [
@@ -25,7 +26,7 @@ const getProjects = asyncHandler(async (req, res) => {
             $lookup: {
               from: "projectmembers",
               localField: "_id",
-              foreignField: "projects",
+              foreignField: "project",
               as: "projectmembers",
             },
           },
@@ -40,22 +41,22 @@ const getProjects = asyncHandler(async (req, res) => {
       },
     },
     {
-      $unwind: "$project",
+      $unwind: "$projects",
     },
     {
-      $project: {
-        project: {
-          _id: 1,
-          name: 1,
-          description: 1,
-          members: 1,
-          createdAt: 1,
-          createdBy: 1,
-        },
-        role: 1,
-        _id: 0,
-      },
+  $project: {
+    project: {
+      _id: "$projects._id",
+      name: "$projects.name",
+      description: "$projects.description",
+      members: "$projects.members",
+      createdAt: "$projects.createdAt",
+      createdBy: "$projects.createdBy"
     },
+    role: 1,
+    _id: 0
+  }
+},
   ]);
 
   return res
@@ -161,7 +162,7 @@ const addMembersToProject = asyncHandler(async (req, res) => {
 
 const getProjectMembers = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
-  const project = await Project.findById(req.params);
+  const project = await Project.findById(projectId);
 
   if (!project) {
     throw new ApiError(404, "Project not found");
