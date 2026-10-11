@@ -131,34 +131,43 @@ const deleteProject = asyncHandler(async (req, res) => {
 });
 
 const addMembersToProject = asyncHandler(async (req, res) => {
-  const { email, role } = req.body;
-  const { projectId } = req.params;
-  const user = await User.findOne({ email });
+const { email, role } = req.body;
+const { projectId } = req.params;
 
-  if (!user) {
-    throw new ApiError(404, "User does not exists");
-  }
+const user = await User.findOne({ email });
 
-  await ProjectMember.findByIdAndUpdate(
-    {
-      user: new mongoose.Types.ObjectId(user._id),
-      project: new mongoose.Types.ObjectId(projectId),
-    },
-    {
-      user: new mongoose.Types.ObjectId(user._id),
-      project: new mongoose.Types.ObjectId(projectId),
-      role: role,
-    },
-    {
-      new: true,
-      upsert: true,
-    },
-  );
+if (!user) {
+throw new ApiError(404, "User does not exist");
+}
 
-  return res
-    .status(201)
-    .json(new ApiResponse(201, {}, "Project member added successfully"));
+await ProjectMember.findOneAndUpdate(
+{
+user: user._id,
+project: projectId,
+},
+{
+$set: {
+role: role,
+},
+$setOnInsert: {
+user: user._id,
+project: projectId,
+},
+},
+{
+new: true,
+upsert: true,
+runValidators: true,
+}
+);
+
+return res
+.status(201)
+.json(
+new ApiResponse(201, {}, "Project member added successfully")
+);
 });
+
 
 const getProjectMembers = asyncHandler(async (req, res) => {
   const { projectId } = req.params;

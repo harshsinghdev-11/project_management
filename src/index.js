@@ -8,13 +8,15 @@ dotenv.config({
 
 const port = process.env.PORT || 3000;
 
-connectDB()
-  .then(() => {
-    app.listen(port, () => {
+const initializeDB = () => {
+  connectDB().catch((error) => {
+    console.error("Database unavailable; server remains running.");
+    setTimeout(initializeDB, 5000);
+  });
+};
+
+initializeDB();
+
+app.listen(port, () => {
       console.log(`app listening on port http://localhost:${port}`);
     });
-  })
-  .catch((err) => {
-    console.error("MongoDB connection error", err);
-    process.exit(1);
-  });
