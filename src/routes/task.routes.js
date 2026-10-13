@@ -23,16 +23,17 @@ import {
 } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { AvailableUserRole, UserRolesEnum } from "../utils/constants.js";
+import { readLimiter, writeLimiter } from "../middlewares/rateLimiter.js";
 
 const router = Router();
 
-// All task routes require authentication
 router.use(verifyJWT);
 
 router
   .route("/:projectId")
-  .get(validateProjectPermission(AvailableUserRole), getTasks)
+  .get(readLimiter, validateProjectPermission(AvailableUserRole), getTasks)
   .post(
+    writeLimiter,
     validateProjectPermission([
       UserRolesEnum.ADMIN,
       UserRolesEnum.PROJECT_ADMIN,
@@ -45,8 +46,9 @@ router
 
 router
   .route("/:projectId/t/:taskId")
-  .get(validateProjectPermission(AvailableUserRole), getTaskById)
+  .get(readLimiter, validateProjectPermission(AvailableUserRole), getTaskById)
   .put(
+    writeLimiter,
     validateProjectPermission([
       UserRolesEnum.ADMIN,
       UserRolesEnum.PROJECT_ADMIN,
@@ -57,6 +59,7 @@ router
     updateTask,
   )
   .delete(
+    writeLimiter,
     validateProjectPermission([
       UserRolesEnum.ADMIN,
       UserRolesEnum.PROJECT_ADMIN,
@@ -67,6 +70,7 @@ router
 router
   .route("/:projectId/t/:taskId/subtasks")
   .post(
+    writeLimiter,
     validateProjectPermission([
       UserRolesEnum.ADMIN,
       UserRolesEnum.PROJECT_ADMIN,
@@ -79,12 +83,14 @@ router
 router
   .route("/:projectId/st/:subTaskId")
   .put(
+    writeLimiter,
     validateProjectPermission(AvailableUserRole),
     updateSubTaskValidator(),
     validate,
     updateSubTask,
   )
   .delete(
+    writeLimiter,
     validateProjectPermission([
       UserRolesEnum.ADMIN,
       UserRolesEnum.PROJECT_ADMIN,

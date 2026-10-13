@@ -12,7 +12,7 @@ The detailed specifications, features, and API endpoints for this backend are fu
 - **JWT (JSON Web Tokens)**: For secure user authentication and authorization.
 - **Bcrypt**: For securely hashing and storing passwords.
 - **Multer**: For handling file attachments and image uploads.
-- **Nodemailer & Mailgen**: For sending template-based emails (like account verification and password resets).
+- **Nodemailer & Mailgen**: For sending template-based emails (like password resets).
 - **Express Validator**: For sanitizing and validating user inputs.
 
 ## 3. Folder Structure Overview

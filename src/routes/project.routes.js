@@ -24,30 +24,37 @@ import {
 } from "../middlewares/auth.middleware.js";
 
 import { AvailableUserRole, UserRolesEnum } from "../utils/constants.js";
+import { readLimiter, writeLimiter } from "../middlewares/rateLimiter.js";
 
 const router = Router();
 router.use(verifyJWT);
 
 router
   .route("/")
-  .get(getProjects)
-  .post(createProjectValidator(), validate, createProject);
+  .get(readLimiter, getProjects)
+  .post(writeLimiter, createProjectValidator(), validate, createProject);
 
 router
   .route("/:projectId")
-  .get(validateProjectPermission(AvailableUserRole), getProjectById)
+  .get(readLimiter, validateProjectPermission(AvailableUserRole), getProjectById)
   .put(
+    writeLimiter,
     validateProjectPermission([UserRolesEnum.ADMIN]),
     createProjectValidator(),
     validate,
     updateProject,
   )
-  .delete(validateProjectPermission([UserRolesEnum.ADMIN]), deleteProject);
+  .delete(
+    writeLimiter,
+    validateProjectPermission([UserRolesEnum.ADMIN]),
+    deleteProject,
+  );
 
 router
   .route("/:projectId/members")
-  .get(getProjectMembers)
+  .get(readLimiter, getProjectMembers)
   .post(
+    writeLimiter,
     validateProjectPermission([UserRolesEnum.ADMIN]),
     addMembertoProjectValidator(),
     validate,
@@ -56,7 +63,15 @@ router
 
 router
   .route("/:projectId/members/:userId")
-  .put(validateProjectPermission([UserRolesEnum.ADMIN]), updateMemberRole)
-  .delete(validateProjectPermission([UserRolesEnum.ADMIN]), deleteMember);
+  .put(
+    writeLimiter,
+    validateProjectPermission([UserRolesEnum.ADMIN]),
+    updateMemberRole,
+  )
+  .delete(
+    writeLimiter,
+    validateProjectPermission([UserRolesEnum.ADMIN]),
+    deleteMember,
+  );
 
 export default router;

@@ -22,7 +22,7 @@ const generateAccessAndRefreshTokens = async (userId) => {
   } catch (error) {
     throw new ApiError(
       500,
-      error,
+      error?.message || "Something went wrong while generating access and refresh tokens",
     );
   }
 };
@@ -74,7 +74,7 @@ const login = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (!user) {
-    throw new ApiError(400, "User does not exists");
+    throw new ApiError(400, "Invalid credentials");
   }
 
   const isPasswordValid = await user.isPasswordCorrect(password);
