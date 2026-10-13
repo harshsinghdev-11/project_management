@@ -26,7 +26,6 @@ import { AvailableUserRole, UserRolesEnum } from "../utils/constants.js";
 
 const router = Router();
 
-// All task routes require authentication
 router.use(verifyJWT);
 
 router

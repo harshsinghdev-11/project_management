@@ -18,8 +18,12 @@ import {
   userResetForgotPasswordValidator,
 } from "../validators/index.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
-
+import { constantTimeResponse } from "../middlewares/timing.middleware.js";
+// import {loginLimiter,forgetPasswordLimiter} from "../middlewares/rateLimiter.js";
 const router = Router();
+
+// Apply uniform response timing mitigation across all auth endpoints
+router.use(constantTimeResponse());
 
 // unsecured route
 router.route("/register").post(userRegisterValidator(), validate, registerUser);
