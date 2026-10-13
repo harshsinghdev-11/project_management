@@ -11,6 +11,7 @@
   "author": "harsh singh",
   "license": "ISC",
   "devDependencies": {
+    "autocannon": "^8.0.0",
     "nodemon": "^3.1.10",
     "prettier": "3.6.2"
   },
