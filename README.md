@@ -2,23 +2,31 @@
 
 > 🌐 **Live Application:** [https://project-camp-six.vercel.app/](https://project-camp-six.vercel.app/)
 
-A production-ready REST API for workspace, task, and team management built with **Node.js, Express, and MongoDB Atlas**. 
+![Project Camp Schema & Architecture](public/images/project-camp.png)
 
-Engineered with clean architecture, real-world security mitigations, stateless JWT authentication with role-based access control, and empirically tested rate-limiting tailored for cloud deployment.
+### What This Project Does
+A collaborative project management backend (similar to Trello or Linear). It allows teams to:
+* **Manage Projects:** Organize work into dedicated team workspaces.
+* **Team Roles & Permissions:** Invite collaborators with granular roles (`Admin`, `Project Admin`, `Member`).
+* **Task & Checklist Tracking:** Create, assign, and update tasks across workflow stages (`Todo`, `In Progress`, `Done`), with nested checklist subtasks and file attachments.
+* **Project Notes:** Post shared updates and notes within each workspace.
+
+Built with **Node.js, Express, and MongoDB Atlas**, focusing on clean data modeling, security protections, and cloud-ready rate limits.
 
 ---
 
-## Architecture & Engineering Highlights
+## Core Architecture & Features
 
-| # | Architectural Pillar | Summary | Deep Dive |
+| # | Feature / Area | Summary | Details |
 | :---: | :--- | :--- | :---: |
-| **1** | **RESTful API Design** | Resource-oriented endpoints with standardized `ApiResponse` / `ApiError` envelopes and live Swagger docs. | [Read Docs](docs/rest-api.md) |
-| **2** | **Relational NoSQL Design** | Normalized 6-collection schema with junction models (`ProjectMember`) to prevent 16MB document size limits. | [Read Docs](docs/database-design.md) |
-| **3** | **Timing Attack Mitigation** | Constant-time middleware with cryptographic jitter ($\pm 30\text{ms}$) across auth endpoints to eliminate user enumeration (CWE-208). | [Read Docs](docs/timing-attack-defense.md) |
-| **4** | **Stateless Auth & RBAC** | Dual-token rotation (JWT Access + Refresh tokens) with hierarchical role permissions (`admin`, `project_admin`, `member`). | [Read Docs](docs/auth-and-rbac.md) |
-| **5** | **MongoDB Aggregations** | Multi-stage pipeline lookups (`$match`, `$lookup`, `$project`, `$addFields`) fetching hydrated nested tasks in a single database round-trip. | [Read Docs](docs/aggregation-pipelines.md) |
-| **6** | **Fail-Fast Validation** | Declarative `express-validator` rules paired with a centralized middleware returning `422 Unprocessable Entity` before controllers run. | [Read Docs](docs/validation.md) |
-| **7** | **Cached DB Connection** | Promise-cached singleton pattern (`connectionPromise`) in `src/db/index.js` eliminating duplicate sockets on cloud cold starts. | [Read Docs](docs/db-connection-caching.md) |
+| **1** | **RESTful API Design** | Resource-based routes with standard HTTP status codes, consistent JSON responses, and live Swagger docs. | [Read Docs](docs/rest-api.md) |
+| **2** | **Relational NoSQL Design** | Normalized 6-collection schema using a join collection (`ProjectMember`) to avoid MongoDB's 16MB document limit. | [Read Docs](docs/database-design.md) |
+| **3** | **Timing Attack Defense** | Constant-time middleware with small random delays (±30ms) on auth routes so attackers cannot guess registered emails by response time. | [Read Docs](docs/timing-attack-defense.md) |
+| **4** | **Stateless Auth & RBAC** | Dual-token setup (JWT Access + Refresh tokens) with role-based permissions (`admin`, `project_admin`, `member`). | [Read Docs](docs/auth-and-rbac.md) |
+| **5** | **MongoDB Aggregations** | Multi-stage pipelines (`$match`, `$lookup`, `$project`, `$addFields`) to fetch full task details, assignees, and subtasks in one database query. | [Read Docs](docs/aggregation-pipelines.md) |
+| **6** | **Rate Limiting** | Set using 104 **Autocannon** load tests on Render—prevents Bcrypt from freezing the CPU on logins while allowing up to 120 reads per minute. | [Read Docs](docs/rate-limiting.md) |
+| **7** | **Fail-Fast Validation** | Checks incoming data with `express-validator` and rejects invalid requests with 422 before controllers run. | [Read Docs](docs/validation.md) |
+| **8** | **Cached DB Connection** | Reuses a single connection promise in `src/db/index.js` so simultaneous requests never open duplicate database connections. | [Read Docs](docs/db-connection-caching.md) |
 
 ---
 
@@ -60,6 +68,7 @@ npm run dev
 
 # Production
 npm start
+```
 
 ---
 

@@ -6,16 +6,7 @@ The database uses **MongoDB Atlas** with **Mongoose ODM**. It employs a **normal
 
 ## 1. Entity Relationship Overview
 
-```
-[Users] <──────┐
-   │           │
-   │ (creates) │ (assigned to)
-   ▼           │
-[Projects] ───► [Tasks] ───► [Subtasks]
-   │              │
-   ▼              ▼
-[ProjectMembers] [ProjectNotes]
-```
+![Project Camp Database Schema](../public/images/project-camp.png)
 
 ---
 
