@@ -22,6 +22,7 @@ const getTasks = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, tasks, "Task fetched successfully"));
 });
+
 const createTask = asyncHandler(async (req, res) => {
   const { title, description, assignedTo, status } = req.body;
   const { projectId } = req.params;
@@ -32,13 +33,6 @@ const createTask = asyncHandler(async (req, res) => {
   }
   const files = req.files || [];
 
-  const attachments = files.map((file) => {
-    return {
-      url: `${process.env.SERVER_URL}/images/${file.originalname}`,
-      mimetype: file.mimetype,
-      size: file.size,
-    };
-  });
 
   const task = await Task.create({
     title,
@@ -49,13 +43,14 @@ const createTask = asyncHandler(async (req, res) => {
       : undefined,
     status,
     assignedBy: new mongoose.Types.ObjectId(req.user._id),
-    attachments,
   });
 
   return res
     .status(201)
     .json(new ApiResponse(201, task, "Task created successfully"));
 });
+
+
 const getTaskById = asyncHandler(async (req, res) => {
   const { taskId } = req.params;
 
@@ -153,14 +148,6 @@ const updateTask = asyncHandler(async (req, res) => {
       : undefined;
   }
 
-  if (req.files && req.files.length > 0) {
-    const newAttachments = req.files.map((file) => ({
-      url: `${process.env.SERVER_URL}/images/${file.originalname}`,
-      mimetype: file.mimetype,
-      size: file.size,
-    }));
-    updateFields.$push = { attachments: { $each: newAttachments } };
-  }
 
   const updatedTask = await Task.findByIdAndUpdate(
     taskId,
