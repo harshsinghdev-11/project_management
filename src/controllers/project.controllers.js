@@ -1,6 +1,8 @@
 import { User } from "../models/user.models.js";
 import { Project } from "../models/project.models.js";
 import { ProjectMember } from "../models/projectmember.models.js";
+import { Conversation } from "../models/conversation.models.js";
+import { Message } from "../models/message.models.js";
 import { ApiResponse } from "../utils/api-response.js";
 import { ApiError } from "../utils/api-error.js";
 import { asyncHandler } from "../utils/async-handler.js";
@@ -92,6 +94,12 @@ const createProject = asyncHandler(async (req, res) => {
     role: UserRolesEnum.ADMIN,
   });
 
+  await Conversation.create({
+    project: project._id,
+    name: `${project.name} General`,
+    isDefault: true,
+  });
+
   return res
     .status(201)
     .json(new ApiResponse(201, project, "Project created Successfully"));
@@ -125,6 +133,15 @@ const deleteProject = asyncHandler(async (req, res) => {
   if (!project) {
     throw new ApiError(404, "Project not found");
   }
+
+  // Cascade delete associated conversations and messages
+  const conversations = await Conversation.find({ project: projectId });
+  const conversationIds = conversations.map((c) => c._id);
+  if (conversationIds.length > 0) {
+    await Message.deleteMany({ conversation: { $in: conversationIds } });
+  }
+  await Conversation.deleteMany({ project: projectId });
+
   return res
     .status(200)
     .json(new ApiResponse(200, project, "Project deleted successfully"));

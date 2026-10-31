@@ -3,8 +3,7 @@ import brcypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 
-const userSchema = new Schema(
-  {
+const userSchema = new Schema({
     avatar: {
       type: {
         url: String,

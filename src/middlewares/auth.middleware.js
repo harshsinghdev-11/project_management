@@ -1,5 +1,6 @@
 import { User } from "../models/user.models.js";
 import { ProjectMember } from "../models/projectmember.models.js";
+import { Conversation } from "../models/conversation.models.js";
 import { ApiError } from "../utils/api-error.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import jwt from "jsonwebtoken";
@@ -61,3 +62,35 @@ export const validateProjectPermission = (roles = []) => {
     next();
   });
 };
+
+export const validateConversationMember = asyncHandler(
+  async (req, res, next) => {
+    const { conversationId } = req.params;
+
+    if (!conversationId || !mongoose.Types.ObjectId.isValid(conversationId)) {
+      throw new ApiError(400, "Valid conversation ID is required");
+    }
+
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation) {
+      throw new ApiError(404, "Conversation not found");
+    }
+
+    // Verify user is a member of the project that owns this conversation
+    const isProjectMember = await ProjectMember.exists({
+      project: conversation.project,
+      user: req.user._id,
+    });
+
+    if (!isProjectMember) {
+      throw new ApiError(
+        403,
+        "You do not have permission to access or message in this chat group",
+      );
+    }
+
+    req.conversation = conversation;
+    next();
+  },
+);
+

@@ -22,6 +22,9 @@ const projectMemberSchema = new Schema(
   { timestamps: true },
 );
 
+// Prevent duplicate membership records for the same user in a project
+projectMemberSchema.index({ project: 1, user: 1 }, { unique: true });
+
 export const ProjectMember = mongoose.model(
   "ProjectMember",
   projectMemberSchema,
