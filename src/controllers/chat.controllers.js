@@ -4,6 +4,8 @@ import { Project } from "../models/project.models.js";
 import { ApiResponse } from "../utils/api-response.js";
 import { ApiError } from "../utils/api-error.js";
 import { asyncHandler } from "../utils/async-handler.js";
+import { emitSocketEvent } from "../socket/index.js";
+import { MESSAGE_RECEIVED_EVENT } from "../socket/events.js";
 import mongoose from "mongoose";
 
 const getProjectDefaultChat = asyncHandler(async (req, res) => {
@@ -90,6 +92,14 @@ const sendMessage = asyncHandler(async (req, res) => {
   const populatedMessage = await Message.findById(message._id).populate(
     "sender",
     "username fullName avatar email",
+  );
+
+  // Broadcast the new message in real-time to everyone in the conversation room
+  emitSocketEvent(
+    req.app.get("io"),
+    conversationId,
+    MESSAGE_RECEIVED_EVENT,
+    populatedMessage,
   );
 
   return res
