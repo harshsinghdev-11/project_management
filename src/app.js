@@ -32,6 +32,7 @@ import authRouter from "./routes/auth.routes.js";
 import projectRouter from "./routes/project.routes.js";
 import taskRouter from "./routes/task.routes.js";
 import chatRouter from "./routes/chat.routes.js";
+import agentRouter from "./routes/agent.routes.js";
 import { errorHandler } from "./middlewares/error.middlewares.js";
 import { globalLimiter } from "./middlewares/rateLimiter.js";
 
@@ -43,6 +44,7 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/projects", projectRouter);
 app.use("/api/v1/tasks", taskRouter);
 app.use("/api/v1/chat", chatRouter);
+app.use("/api/v1/agent", agentRouter);
 
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));

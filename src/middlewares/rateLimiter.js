@@ -65,3 +65,15 @@ export const readLimiter = createLimiter({
   limit: 120,
   message: "Too many read requests. Please slow down and try again shortly.",
 });
+
+/**
+ * 7. Agent Request Limiter
+ * Applied to POST /api/v1/agent/run.
+ * Protects LLM inference quota and long-running execution limits.
+ * Allows 20 requests per minute per IP.
+ */
+export const agentLimiter = createLimiter({
+  windowMs: 60 * 1000, // 1 minute
+  limit: 20,
+  message: "Too many agent requests. Please slow down and try again shortly.",
+});

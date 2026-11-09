@@ -117,6 +117,15 @@ const sendMessageValidator = () => {
   ];
 };
 
+const agentRunValidator = () => {
+  return [
+    body("query")
+      .trim()
+      .notEmpty()
+      .withMessage("Query is required"),
+  ];
+};
+
 export {
   userRegisterValidator,
   userLoginValidator,
@@ -130,5 +139,6 @@ export {
   createSubTaskValidator,
   updateSubTaskValidator,
   sendMessageValidator,
+  agentRunValidator,
 };
 
