@@ -16,7 +16,7 @@ const httpServer = http.createServer(app);
 const io = new Server(httpServer, {
   pingTimeout: 60000,
   cors: {
-    origin: process.env.CORS_ORIGIN?.split(",") || "http://localhost:3001",
+    origin: process.env.CORS_ORIGIN?.split(","),
     credentials: true,
   },
 });
