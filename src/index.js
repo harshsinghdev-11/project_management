@@ -3,7 +3,7 @@ import http from "http";
 import { Server } from "socket.io";
 import app from "./app.js";
 import connectDB from "./db/index.js";
-import { initializeSocket } from "./socket/index.js";
+import { initializeSocket, closePubSub } from "./socket/index.js";
 
 dotenv.config({
   path: "./.env",
@@ -37,4 +37,15 @@ initializeDB();
 httpServer.listen(port, () => {
   console.log(`app listening on port http://localhost:${port}`);
 });
+
+const handleShutdown = () => {
+  console.log("Shutting down gracefully...");
+  closePubSub();
+  httpServer.close(() => {
+    process.exit(0);
+  });
+};
+
+process.on("SIGINT", handleShutdown);
+process.on("SIGTERM", handleShutdown);
 
