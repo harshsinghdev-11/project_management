@@ -75,18 +75,11 @@ const sendMessage = asyncHandler(async (req, res) => {
   const { conversationId } = req.params;
   const { content } = req.body;
 
-  const files = req.files || [];
-  const attachments = files.map((file) => ({
-    url: file.path || file.filename,
-    mimetype: file.mimetype,
-    size: file.size,
-  }));
 
   const message = await Message.create({
     content,
     conversation: new mongoose.Types.ObjectId(conversationId),
     sender: new mongoose.Types.ObjectId(req.user._id),
-    attachments,
   });
 
   const populatedMessage = await Message.findById(message._id).populate(
@@ -94,7 +87,6 @@ const sendMessage = asyncHandler(async (req, res) => {
     "username fullName avatar email",
   );
 
-  // Broadcast the new message in real-time to everyone in the conversation room
   emitSocketEvent(
     req.app.get("io"),
     conversationId,

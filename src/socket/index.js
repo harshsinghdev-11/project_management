@@ -13,10 +13,13 @@ import {
   STOP_TYPING_EVENT,
   SOCKET_ERROR_EVENT,
 } from "./events.js";
+import {
+  initPubSub,
+  broadcastThroughPubSub,
+  closePubSub,
+} from "../redis/pubsub.js";
 
-/**
- * Utility helper to parse cookie string into key-value pairs
- */
+
 const parseCookies = (cookieHeader) => {
   if (!cookieHeader) return {};
   return Object.fromEntries(
@@ -27,9 +30,7 @@ const parseCookies = (cookieHeader) => {
   );
 };
 
-/**
- * Socket.io authentication middleware
- */
+
 const socketAuthMiddleware = async (socket, next) => {
   try {
     const rawCookies = socket.handshake.headers?.cookie;
@@ -69,20 +70,17 @@ const socketAuthMiddleware = async (socket, next) => {
   }
 };
 
-/**
- * Initialize Socket.io server with authentication and chat event handlers
- */
+
 export const initializeSocket = (io) => {
+  // Initialize Redis Pub/Sub integration for cross-server synchronization
+  initPubSub(io);
+
   // Apply JWT authentication middleware
   io.use(socketAuthMiddleware);
 
   io.on("connection", (socket) => {
-    // Notify client of successful connection
+   
     socket.emit(CONNECTED_EVENT);
-
-    /**
-     * Join a conversation room (enforces Requirement 2: group members only)
-     */
     socket.on(JOIN_CHAT_EVENT, async ({ conversationId }) => {
       try {
         if (!conversationId || !mongoose.Types.ObjectId.isValid(conversationId)) {
@@ -98,7 +96,7 @@ export const initializeSocket = (io) => {
           });
         }
 
-        // Verify the user belongs to the project associated with this conversation
+
         const isMember = await ProjectMember.exists({
           project: conversation.project,
           user: socket.user._id,
@@ -119,9 +117,7 @@ export const initializeSocket = (io) => {
       }
     });
 
-    /**
-     * Leave a conversation room
-     */
+
     socket.on(LEAVE_CHAT_EVENT, ({ conversationId }) => {
       if (conversationId) {
         socket.leave(conversationId);
@@ -129,49 +125,57 @@ export const initializeSocket = (io) => {
       }
     });
 
-    /**
-     * Typing indicators
-     */
+
     socket.on(TYPING_EVENT, ({ conversationId }) => {
       if (conversationId) {
-        socket.in(conversationId).emit(TYPING_EVENT, {
+        broadcastThroughPubSub(
+          io,
           conversationId,
-          user: {
-            _id: socket.user._id,
-            username: socket.user.username,
-            fullName: socket.user.fullName,
+          TYPING_EVENT,
+          {
+            conversationId,
+            user: {
+              _id: socket.user._id,
+              username: socket.user.username,
+              fullName: socket.user.fullName,
+            },
           },
-        });
+          socket,
+        );
       }
     });
 
     socket.on(STOP_TYPING_EVENT, ({ conversationId }) => {
       if (conversationId) {
-        socket.in(conversationId).emit(STOP_TYPING_EVENT, {
+        broadcastThroughPubSub(
+          io,
           conversationId,
-          user: {
-            _id: socket.user._id,
-            username: socket.user.username,
-            fullName: socket.user.fullName,
+          STOP_TYPING_EVENT,
+          {
+            conversationId,
+            user: {
+              _id: socket.user._id,
+              username: socket.user.username,
+              fullName: socket.user.fullName,
+            },
           },
-        });
+          socket,
+        );
       }
     });
 
-    /**
-     * Disconnect handler
-     */
+   
     socket.on(DISCONNECT_EVENT, () => {
-      // Socket cleans up joined rooms automatically on disconnect
+    
     });
   });
 };
 
-/**
- * Helper to emit a socket event to a room from anywhere (e.g. REST controllers)
- */
+
 export const emitSocketEvent = (io, roomId, event, payload) => {
-  if (io && roomId) {
-    io.to(roomId).emit(event, payload);
+  if (roomId) {
+    broadcastThroughPubSub(io, roomId, event, payload);
   }
 };
+
+export { closePubSub };
