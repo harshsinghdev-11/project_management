@@ -46,6 +46,11 @@ const getProjects = asyncHandler(async (req, res) => {
       $unwind: "$projects",
     },
     {
+      $sort: {
+        "projects.createdAt": -1,
+      },
+    },
+    {
       $project: {
         project: {
           _id: "$projects._id",
