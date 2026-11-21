@@ -1,8 +1,12 @@
 import * as Sentry from "@sentry/node";
 import { nodeProfilingIntegration } from "@sentry/profiling-node";
-
+import dotenv from "dotenv"
+dotenv.config({
+  path: "./.env",
+});
+console.log(process.env.SENTRY_DSNcess)
 Sentry.init({
-  dsn: pro.env.SENTRY_DSNcess,
+  dsn: process.env.SENTRY_DSNcess,
   integrations: [
     nodeProfilingIntegration(),
   ],
