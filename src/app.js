@@ -3,6 +3,9 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
+import * as Sentry from "@sentry/node";
+
+
 
 const swaggerDocument = JSON.parse(
   fs.readFileSync(new URL("./openapi.json", import.meta.url), "utf-8")
