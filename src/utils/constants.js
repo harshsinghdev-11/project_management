@@ -13,3 +13,11 @@ export const TaskStatusEnum = {
 };
 
 export const AvailableTaskStatues = Object.values(TaskStatusEnum);
+
+export const ProjectStatusEnum = {
+  TODO: "todo",
+  IN_PROGRESS: "in_progress",
+  COMPLETED: "completed",
+};
+
+export const AvailableProjectStatuses = Object.values(ProjectStatusEnum);

@@ -23,7 +23,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN?.split(",") || "http://locahost:3001",
+    origin: process.env.CORS_ORIGIN?.split(",") || "http://localhost:3001",
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -55,6 +55,8 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.get("/", (req, res) => {
   res.send("visit /docs");
 });
+
+Sentry.setupExpressErrorHandler(app);
 
 app.use(errorHandler);
 

@@ -25,9 +25,14 @@ app.set("io", io);
 
 initializeSocket(io);
 
+let dbErrorReported = false;
 const initializeDB = () => {
   connectDB().catch((error) => {
-    console.error("Database unavailable; server remains running.");
+    if (!dbErrorReported) {           
+      Sentry.captureException(error);
+      dbErrorReported = true;
+    }
+    console.error("Database unavailable; server remains running.", error.message);
     setTimeout(initializeDB, 5000);
   });
 };
@@ -38,10 +43,11 @@ httpServer.listen(port, () => {
   console.log(`app listening on port http://localhost:${port}`);
 });
 
-const handleShutdown = () => {
+const handleShutdown = async () => {
   console.log("Shutting down gracefully...");
   closePubSub();
-  httpServer.close(() => {
+  httpServer.close(async () => {
+    await Sentry.close(2000);
     process.exit(0);
   });
 };

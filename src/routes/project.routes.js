@@ -15,6 +15,7 @@ import { validate } from "../middlewares/validator.middleware.js";
 
 import {
   createProjectValidator,
+  updateProjectValidator,
   addMembertoProjectValidator,
 } from "../validators/index.js";
 
@@ -40,7 +41,7 @@ router
   .put(
     writeLimiter,
     validateProjectPermission([UserRolesEnum.ADMIN]),
-    createProjectValidator(),
+    updateProjectValidator(),
     validate,
     updateProject,
   )

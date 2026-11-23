@@ -7,11 +7,11 @@ import { ApiResponse } from "../utils/api-response.js";
 import { ApiError } from "../utils/api-error.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import mongoose from "mongoose";
-import { AvailableUserRole, UserRolesEnum } from "../utils/constants.js";
+import { AvailableUserRole, UserRolesEnum, ProjectStatusEnum } from "../utils/constants.js";
 
 const getProjects = asyncHandler(async (req, res) => {
   // return the project of user with total member in each project
-  const projects = await ProjectMember.aggregate([
+  const pipeline = [
     {
       $match: {
         user: new mongoose.Types.ObjectId(req.user._id),
@@ -45,6 +45,26 @@ const getProjects = asyncHandler(async (req, res) => {
     {
       $unwind: "$projects",
     },
+  ];
+
+  const { status } = req.query;
+  if (status === "completed") {
+    pipeline.push({ $match: { "projects.status": "completed" } });
+  } else if (status === "active") {
+    pipeline.push({
+      $match: {
+        $or: [
+          { "projects.status": { $in: ["todo", "in_progress"] } },
+          { "projects.status": { $exists: false } },
+          { "projects.status": null },
+        ],
+      },
+    });
+  } else if (status) {
+    pipeline.push({ $match: { "projects.status": status } });
+  }
+
+  pipeline.push(
     {
       $sort: {
         "projects.createdAt": -1,
@@ -56,6 +76,7 @@ const getProjects = asyncHandler(async (req, res) => {
           _id: "$projects._id",
           name: "$projects.name",
           description: "$projects.description",
+          status: { $ifNull: ["$projects.status", "todo"] },
           members: "$projects.members",
           createdAt: "$projects.createdAt",
           createdBy: "$projects.createdBy",
@@ -64,8 +85,9 @@ const getProjects = asyncHandler(async (req, res) => {
         _id: 0,
       },
     },
-  ]);
-  // console.log(projects);
+  );
+
+  const projects = await ProjectMember.aggregate(pipeline);
   return res
     .status(200)
     .json(new ApiResponse(200, projects, "Projects fetched successfully"));
@@ -85,11 +107,12 @@ const getProjectById = asyncHandler(async (req, res) => {
 });
 
 const createProject = asyncHandler(async (req, res) => {
-  const { name, description } = req.body;
+  const { name, description, status } = req.body;
 
   const project = await Project.create({
     name,
     description,
+    status: status || ProjectStatusEnum.TODO,
     createdBy: new mongoose.Types.ObjectId(req.user._id),
   });
 
@@ -111,16 +134,18 @@ const createProject = asyncHandler(async (req, res) => {
 });
 
 const updateProject = asyncHandler(async (req, res) => {
-  const { name, description } = req.body;
+  const { name, description, status } = req.body;
   const { projectId } = req.params;
+
+  const updateFields = {};
+  if (name !== undefined) updateFields.name = name;
+  if (description !== undefined) updateFields.description = description;
+  if (status !== undefined) updateFields.status = status;
 
   const project = await Project.findByIdAndUpdate(
     projectId,
-    {
-      name,
-      description,
-    },
-    { new: true },
+    { $set: updateFields },
+    { new: true, runValidators: true },
   );
 
   if (!project) {
